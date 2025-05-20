@@ -1,0 +1,149 @@
+import json
+import os
+
+FILENAME = 'students.json'
+def initialize_json():
+    if not os.path.exists(FILENAME):
+        data = [
+            {
+                "id": 1,
+                "name": "deebesh",
+                "age": 21,
+                "subjects": [
+                    {"subject_name": "Tam", "marks": 85},
+                    {"subject_name": "Eng", "marks": 90},
+                    {"subject_name": "Mat", "marks": 95},
+                    {"subject_name": "Sci", "marks": 88},
+                    {"subject_name": "Soc", "marks": 92}
+                ]
+            }
+        ]
+        with open(FILENAME, 'w') as file:
+            json.dump(data, file, indent=4)
+        print("Initialized students.json with default data.")
+    else:
+        print("students.json already exists.")
+
+def display_students():
+    with open(FILENAME, 'r') as file:
+        students = json.load(file)
+        for student in students:
+            avg_marks = sum(sub['marks'] for sub in student['subjects']) / len(student['subjects'])
+            print(f"Student: {student['name']} | Average Marks: {avg_marks:.2f}")
+
+def add_student():
+    with open(FILENAME, 'r') as file:
+        students = json.load(file)
+
+    new_id = max([s["id"] for s in students], default=0) + 1
+    name = input("Enter student name: ")
+    age = int(input("Enter student age: "))
+
+    fixed_subjects = ["Tam", "Eng", "Mat", "Sci", "Soc"]
+    subjects = []
+
+    for subject in fixed_subjects:
+        while True:
+            try:
+                marks = int(input(f"Enter marks for {subject}: "))
+                if 0 <= marks <= 100:
+                    break
+                else:
+                    print("Marks must be between 0 and 100.")
+            except ValueError:
+                print("Invalid input. Please enter a number.")
+        subjects.append({"subject_name": subject, "marks": marks})
+
+    new_student = {
+        "id": new_id,
+        "name": name,
+        "age": age,
+        "subjects": subjects
+    }
+    students.append(new_student)
+
+    with open(FILENAME, 'w') as file:
+        json.dump(students, file, indent=4)
+    print("New student added successfully.")
+
+def update_marks():
+    student_id = int(input("Enter student ID to update marks: "))
+    subject_to_update = input("Enter subject name: ")
+    new_marks = int(input("Enter new marks: "))
+
+    with open(FILENAME, 'r') as file:
+        students = json.load(file)
+
+    for student in students:
+        if student["id"] == student_id:
+            for subject in student["subjects"]:
+                if subject["subject_name"].lower() == subject_to_update.lower():
+                    subject["marks"] = new_marks
+                    break
+            else:
+                student["subjects"].append({"subject_name": subject_to_update, "marks": new_marks})
+            break
+    else:
+        print("Student ID not found.")
+        return
+
+    with open(FILENAME, 'w') as file:
+        json.dump(students, file, indent=4)
+    print("Marks updated successfully.")
+
+def delete_student():
+    student_id = int(input("Enter student ID to delete: "))
+
+    with open(FILENAME, 'r') as file:
+        students = json.load(file)
+
+    new_students = [s for s in students if s["id"] != student_id]
+
+    if len(new_students) == len(students):
+        print("Student ID not found.")
+    else:
+        with open(FILENAME, 'w') as file:
+            json.dump(new_students, file, indent=4)
+        print("Student record deleted.")
+
+def display_ranks():
+    with open(FILENAME, 'r') as file:
+        students = json.load(file)
+
+    ranked = sorted(
+        students,
+        key=lambda s: sum(sub['marks'] for sub in s['subjects']) / len(s['subjects']),
+        reverse=True
+    )
+
+    print("\nStudent Rankings by Average Marks:")
+    for i, student in enumerate(ranked, start=1):
+        avg = sum(sub['marks'] for sub in student['subjects']) / len(student['subjects'])
+        print(f"Rank {i}: {student['name']} | Avg Marks: {avg:.2f}")
+
+while True:
+    initialize_json()
+        print("\n---Student Management Menu--- ")
+        print("1. Display Students")
+        print("2. Add New Student")
+        print("3. Update Marks")
+        print("4. Delete Student")
+        print("5. Display Rankings")
+        print("6. Exit")
+
+        choice = input("Choose an option: ")
+        if choice == '1':
+            display_students()
+        elif choice == '2':
+            add_student()
+        elif choice == '3':
+            update_marks()
+        elif choice == '4':
+            delete_student()
+        elif choice == '5':
+            display_ranks()
+        elif choice == '6':
+            print("Exiting program.")
+            break
+        else:
+            print("Invalid choice. Please select again.")
